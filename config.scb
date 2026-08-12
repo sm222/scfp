@@ -1,0 +1,12 @@
+NAMEX:.a
+
+CFLAGS:
+  -Wall 
+  -Werror 
+  -Wextra 
+  -g
+
+ING:
+  test
+
+LIB:

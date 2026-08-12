@@ -1,0 +1,15 @@
+NAMEX:.a
+
+FOO:
+  bar
+
+CFLAGS:
+  -Wall 
+  -Werror 
+  -Wextra 
+  -g @_HELLO
+
+ING:
+  test
+
+LIB:
