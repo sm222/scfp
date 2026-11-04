@@ -19,8 +19,10 @@ static inline ssize_t s_strlen(const char* s) {
   return s ? (ssize_t)strlen(s) : -1;
 }
 
+ssize_t find_var_len(const char* s);
+
 # define TOKENSIZE 1
-# define TOKENS_LIST "\\%;"
+# define TOKENS_LIST "\\%!"
 
 # define SCFP_MAX_KEYWORDS 100
 
@@ -51,6 +53,8 @@ typedef struct scfp_file_s {
   size_t             nbLine;
   size_t             i;
   size_t             j;
+  //
+  int                dep;
 } scfp_file_t;
 
 
@@ -62,6 +66,7 @@ typedef enum {
   scfp_valid_file = 0,
   scfp_invalid_file,
   scfp_empty_file,
+  scfp_buffer_full,
 } scfp_data_status;
 
 typedef enum {
@@ -73,10 +78,20 @@ typedef enum {
   scfp_empty_line,
 } scfp_parsing;
 
+static const char* const scfp_parsing_msg[] = {
+  "invalid line",
+  "comment line",
+  "var line",
+  "next value",
+  "unknow line",
+  "empty line",
+  NULL
+};
+
 typedef struct scfp_real_data {
   scfp_file_t      data;
   scfp_data_status status;
-  char             buffer[SCFP_VAR_SIZE];
+  char             buffer[SCFP_VAR_SIZE + 1];
 } scfp_real_data_t;
 
 
@@ -91,6 +106,7 @@ int               _test_keywords(scfp_real_data_t* file, scfp_rules_t* rules);
 
 int               _is_line_valid(const char* s);
 
-size_t            _get_value(scfp_real_data_t* file, ssize_t* total, const size_t start, const char* name, scfp_rules_t* rule);
+void              reset_recursive(void);
+size_t            _get_value(scfp_real_data_t* file, ssize_t* total, const char* name, scfp_rules_t* rule);
 
 #endif

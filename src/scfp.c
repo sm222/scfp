@@ -3,113 +3,8 @@
 # include <unistd.h>
 # include <fcntl.h>
 
-# define NL '\n'
-# define B_SIZE 101
+#include "gnl.h"
 
-# define BUFFER_SIZE 200
-
-typedef struct s_info {
-  char*  tmp;
-  char*  tmp2;
-  char   readtmp[BUFFER_SIZE + 1];
-  int    rv;
-  size_t  cut;
-}  t_info;
-
-static void* ft_sfree(void* ptr) {
-  free(ptr);
-  return NULL;
-}
-
-static char* ft_strjoin(char* sfree, char* s2) {
-  size_t s1_i = strlen(sfree ? sfree : "");
-  size_t s2_i = strlen(s2 ? s2 : "");
-  char* new = calloc(s1_i + s2_i + 1, sizeof(char));
-
-  if (!new) {
-    sfree = ft_sfree(sfree);
-    return (NULL);
-  }
-  while (s1_i + s2_i-- > s1_i)
-    new[s1_i + s2_i] = s2[s2_i];
-  while (s1_i--)
-    new[s1_i] = sfree[s1_i];
-  if (*new == 0)
-    new = ft_sfree(new);
-  return (ft_sfree(sfree), new);
-}
-
-static char* ft_tiny_split(char* s, size_t* cut) {
-  char* new = NULL;
-  size_t  i = 0;
-
-  while (s[i])
-    if (s[i++] == '\n')
-      break ;
-  new = calloc(i + 1, sizeof(char));
-  if (!new)
-    return (new = ft_sfree(new));
-  *cut = i;
-  while (i--)
-    new[i] = s[i];
-  return (new);
-}
-
-static char  ft_find_nl(char* s) {
-  size_t  i = 0;
-
-  while (s && s[i]) {
-    if (s[i] == '\n')
-      return ('\n');
-    i++;
-  }
-  return ('0');
-}
-
-static char* safe_return(char**  book, t_info* t_val) {
-  t_val->tmp = ft_tiny_split(*book, &t_val->cut);
-  if (!t_val->tmp) {
-    *book = ft_sfree(*book);
-    return (NULL);
-  }
-  t_val->tmp2 = *book;
-  *book = ft_strjoin(NULL, *book + t_val->cut);
-  t_val->tmp2 = ft_sfree(t_val->tmp2);
-  return (t_val->tmp);
-}
-
-char* get_next_line(int fd) {
-  static char* book = NULL;
-  t_info    t_val;
-
-  if (fd < 0 || BUFFER_SIZE <= 0 || fd > 255)
-    return (book = ft_sfree(book));
-  if (!book)
-    book = calloc(1, sizeof(char));
-  if (!book)
-    return (NULL);
-  t_val.rv = 0;
-  while (ft_find_nl(book) == '0') {
-    bzero(t_val.readtmp, BUFFER_SIZE + 1);
-    t_val.rv = read(fd, t_val.readtmp, BUFFER_SIZE);
-    if (t_val.rv <= 0)
-      break ;
-    book = ft_strjoin(book, t_val.readtmp);
-    if (!book)
-      return (NULL);
-  }
-  if (t_val.rv == -1 || (t_val.rv <= 0 && *book == 0)) {
-    book = ft_sfree(book);
-    return (NULL);
-  }
-  return (safe_return(&book, &t_val));
-}
-
-void test(void) {
-  const char* s = "Hello Wold";
-  ssize_t len = s_strlen(s);
-  printf("%zu %s\n", len, s);
-}
 
 
 //*
@@ -146,6 +41,7 @@ scfp_real_data_t* _open_file(const char* name) {
   file->status = scfp_valid_file;
   const int fd = open(name, O_RDONLY);
   if (fd <= 0) {
+    perror(name);
     return file;
   }
   file->data.name = s_strdup(name);
@@ -164,7 +60,6 @@ void  _close_file(scfp_real_data_t* file) {
 }
 
 
-
 static inline bool _valid(int prev, int now) {
   if (now == scfp_invalid_line || now == scfp_unknow_line)
     return false;
@@ -180,15 +75,19 @@ static inline bool _valid(int prev, int now) {
 
 scfp_parsing  _parse_file(scfp_real_data_t* file, scfp_rules_t* rules) {
   size_t i = 0;
-  (void)rules;
   int prev = scfp_empty_line;
   while (file->data.raw[i]) {
     const char* l = file->data.raw[i];
     const int line = _is_line_valid(l);
     if (!_valid(prev, line)) {
-      fprintf(stderr, "scfp: invalid config file\n" \
-        "%s:%zu - > %s\n", file->data.name, i + 1, l);
+      fprintf(stderr, "scfp: invalid config file error: %s\n" \
+        "%s:%zu - > %s\n", scfp_parsing_msg[(prev * -1)], file->data.name, i + 1, l);
+        file->status = scfp_invalid_file;
       return 1;
+    }
+    if (line == scfp_var_line) {
+      ssize_t t = 0;
+      _get_value(file, &t, l, rules);
     }
     i++;
     prev = line;
@@ -250,18 +149,20 @@ const char* _read_line(scfp_real_data_t* file) {
   return file->data.raw[file->data.i++];
 }
 
+//todo
 int _test_keywords(scfp_real_data_t* file, scfp_rules_t* rules) {
-  const char* l = "";
+  //const char* l = "";
   (void)rules;
-  while (l) {
-    l = _read_line(file);
+  (void)file;
+  //while (l) {
+   // l = _read_line(file);
     //printf(">%s", l);
-  }
+  //}
   return 0;
 }
 
-static const char* _read_predefine_var(scfp_rules_t* rules, const char* name) {
-  const ssize_t nameLen = s_strlen(name);
+const char* _read_predefine_var(scfp_rules_t* rules, const char* name) {
+  const ssize_t nameLen = find_var_len(name);
   for (size_t i = 0; i < rules->varSize; i++) {
     if (strncmp(name, rules->reserveVars[i], nameLen) == 0 \
       && rules->reserveVars[i][nameLen] == ':') {
@@ -272,20 +173,63 @@ static const char* _read_predefine_var(scfp_rules_t* rules, const char* name) {
 }
 
 # include "scfp_types.h"
+# include <errno.h>
+
+int scfp_pars_file(scfp_file file, scfp_rule rule) {
+  return _parse_file((scfp_real_data_t*)file, (scfp_rules_t*)rule);
+}
 
 
 const char* scfp_get_value(scfp_file file, scfp_rule rule, const char* name) {
   if (!file || !rule || !name) {
+    fprintf(stderr, "scfp: missing info\n");
     return "";
   }
   scfp_real_data_t* c_file  = file;
-  scfp_rules_t*     c_rules = rule;
+  scfp_rules_t*     c_rule  = rule;
   //
-  ssize_t total = 0;
   bzero(c_file->buffer, SCFP_VAR_SIZE);
-  _get_value(c_file, &total, -1, name, c_rules);
+  if (c_file->status == scfp_buffer_full) {
+    c_file->status = scfp_valid_file;
+    fprintf(stderr, "scfp: buffer is full\n");
+  }
+  if (c_file->status) {
+    fprintf(stderr, "scfp: file not valid: %d\n", c_file->status);
+    return "";
+  }
+  ssize_t total = 0;
+  c_file->data.dep = 0;
+  _get_value(c_file, &total, name, c_rule);
   if (c_file->buffer[0] == 0) {
-    return _read_predefine_var(c_rules, name);
+    return _read_predefine_var(c_rule, name);
   }
   return c_file->buffer;
+}
+
+scfp_file   scfp_open_file(const char* path) {
+  return _open_file(path);
+}
+
+
+scfp_rule    scfp_init_rule(const char* name,
+    const char* const* filesEx, const char* const* validKeywords,
+    const char* const* preDefineVar, char escapeCar) {
+  //
+  scfp_rules_t* rules = _init_rule(name, filesEx, validKeywords, preDefineVar, escapeCar);
+  if (!rules || !rules->name || !rules->validFiles || !rules->keywords || !rules->reserveVars) {
+    if (rules) {
+      _end_rule(rules);
+    }
+    fprintf(stderr, "scfp: faild to init rules %s\n", strerror(errno));
+    return NULL;
+  }
+  return rules;
+}
+
+void scfp_close_file(scfp_file file) {
+  _close_file(file);
+}
+
+void scfp_end_rule(scfp_rule rule) {
+  _end_rule(rule);
 }
