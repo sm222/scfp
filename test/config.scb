@@ -1,7 +1,20 @@
 NAMEX:.a
 
-FOO:
-  bar
+ADD:
+  TT$
+
+VEC3:
+  float:x;
+  float:y;
+  float:z;
+  @FOO
+
+BLAH:
+  123
+  @_TEST
+
+#FOO:
+#  @VEC3
 
 CFLAGS:
   -Wall 

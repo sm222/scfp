@@ -106,6 +106,7 @@ static int test_keyword(scfp_real_data_t* file, const char* s, size_t* dis, ssiz
     if (rule->fts[i]) {
       return rule->fts[i](s, rule->context);
     } else {
+      fprintf(stderr, "scfp: missing function\n");
       assert(0);
     }
     (void)total;
