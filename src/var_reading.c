@@ -78,28 +78,36 @@ int remove_endl(char* value) {
   return 0;
 }
 
+//fprintf(stderr, "|%s|%s|\n", s, keyword);
 //good
-bool is_valid_keyword(const char* s, size_t i, doubleString_t keywords) {
-  const size_t keywordLen = strlen(keywords[i]);
-  if (strncmp(s, keywords[i], keywordLen) == 0) {
-    return isspace(s[keywordLen]) || is_tokens(s[keywordLen]);
+static bool is_valid_keyword(const char* s, const char* keyword, const ssize_t len) {
+  if (len != s_strlen(keyword)) {
+    return false;
+  }
+  if (strncmp(s, keyword, len) == 0) {
+    return isspace(s[len]) || is_tokens(s[len]);
   }
   return false;
 }
 
+# include <assert.h>
+
 //!not finish
 static int test_keyword(scfp_real_data_t* file, const char* s, size_t* dis, ssize_t* total, scfp_rules_t* rule) {
-  const size_t len = find_var_len(s) - 1;
+  const size_t len = find_var_len(s);
+  //fprintf(stderr, "{%.*s}", (int)len + 1, s);
   *dis += len;
   size_t i = 0;
   for ( ; rule->keywords[i]; i++) {
-    if (is_valid_keyword(s, i, rule->keywords)) { break ; }
+    if (is_valid_keyword(s, rule->keywords[i], len)) { break ; }
   }
-  //return 1 = continue reading 
-  // test system target
+  //return 1 = continue reading
   if (i < rule->keywordSize) {
-    //printf("keyword -> [%zu]%s\n", i, rule->keywords[i]);
-    (void)file;
+    if (rule->fts[i]) {
+      return rule->fts[i](s, rule->context);
+    } else {
+      assert(0);
+    }
     (void)total;
     return 0;
   }
@@ -216,4 +224,8 @@ size_t _get_value(scfp_real_data_t* file, ssize_t* total, const char* name, scfp
 
 void  _scfp_set_context(scfp_rules_t* rule, void* context) {
   rule->context = context;
+}
+
+void _scfp_set_ft(size_t i, scfp_rules_t* rule, keywordFt ft) {
+  rule->fts[i] = ft;
 }

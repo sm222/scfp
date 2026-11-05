@@ -5,8 +5,6 @@
 
 #include "gnl.h"
 
-
-
 //*
 static size_t _read_file(const int fd, scfp_real_data_t* file) {
   size_t size = 20;
@@ -237,10 +235,18 @@ void scfp_end_rule(scfp_rule rule) {
 
 bool    scfp_set_context(scfp_rule rule, void* context) {
   if (!rule || !context) {
-    fprintf(stderr, "scfp: setmissing value");
+    fprintf(stderr, "scfp: setmissing value\n");
     return false;
   }
   _scfp_set_context(rule, context);
   return true;
 }
 
+bool    scfp_set_ft(size_t i, scfp_rule rule, keywordFt ft) {
+  if (i >= SCFP_MAX_KEYWORDS || !rule || !ft) {
+    fprintf(stderr, "scfp: invalid value\n");
+    return false;
+  }
+  _scfp_set_ft(i, rule, ft);
+  return true;
+}

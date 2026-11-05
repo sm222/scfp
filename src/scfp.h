@@ -13,7 +13,7 @@ int          scfp_pars_file(scfp_file file, scfp_rule rule);
 const char*  scfp_get_value(scfp_file file, scfp_rule rule, const char* name);
 
 bool         scfp_set_context(scfp_rule rule, void* context);
-
+bool         scfp_set_ft(size_t i, scfp_rule rule, keywordFt ft);
 
 void         scfp_close_file(scfp_file file);
 void         scfp_end_rule(scfp_rule rule);

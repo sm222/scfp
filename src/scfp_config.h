@@ -24,7 +24,6 @@ ssize_t find_var_len(const char* s);
 # define TOKENSIZE 1
 # define TOKENS_LIST "\\%!"
 
-# define SCFP_MAX_KEYWORDS 100
 # include "scfp_types.h"
 
 static const char* const _empty[] = {
@@ -109,5 +108,7 @@ int               _is_line_valid(const char* s);
 size_t            _get_value(scfp_real_data_t* file, ssize_t* total, const char* name, scfp_rules_t* rule);
 
 void              _scfp_set_context(scfp_rules_t* rule, void* context);
+
+void              _scfp_set_ft(size_t i, scfp_rules_t* rule, keywordFt ft);
 
 #endif
