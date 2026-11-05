@@ -233,3 +233,14 @@ void scfp_close_file(scfp_file file) {
 void scfp_end_rule(scfp_rule rule) {
   _end_rule(rule);
 }
+
+
+bool    scfp_set_context(scfp_rule rule, void* context) {
+  if (!rule || !context) {
+    fprintf(stderr, "scfp: setmissing value");
+    return false;
+  }
+  _scfp_set_context(rule, context);
+  return true;
+}
+

@@ -212,3 +212,8 @@ size_t _get_value(scfp_real_data_t* file, ssize_t* total, const char* name, scfp
   } while (nlValid);
   return nameLen;
 }
+
+
+void  _scfp_set_context(scfp_rules_t* rule, void* context) {
+  rule->context = context;
+}

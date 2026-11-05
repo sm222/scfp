@@ -25,8 +25,7 @@ ssize_t find_var_len(const char* s);
 # define TOKENS_LIST "\\%!"
 
 # define SCFP_MAX_KEYWORDS 100
-
-typedef int(*keywordFt)(const char*, size_t, void*, void*);
+# include "scfp_types.h"
 
 static const char* const _empty[] = {
   "",
@@ -44,6 +43,7 @@ typedef struct scfp_rules_s {
   /*            |            */
   char          escape;      // % ? * $
   keywordFt     fts[SCFP_MAX_KEYWORDS];
+  void*         context;
   struct  scfp_rules_s* next;
 } scfp_rules_t;
 
@@ -106,7 +106,8 @@ int               _test_keywords(scfp_real_data_t* file, scfp_rules_t* rules);
 
 int               _is_line_valid(const char* s);
 
-void              reset_recursive(void);
 size_t            _get_value(scfp_real_data_t* file, ssize_t* total, const char* name, scfp_rules_t* rule);
+
+void              _scfp_set_context(scfp_rules_t* rule, void* context);
 
 #endif
