@@ -250,3 +250,17 @@ bool    scfp_set_ft(size_t i, scfp_rule rule, keywordFt ft) {
   _scfp_set_ft(i, rule, ft);
   return true;
 }
+
+ssize_t      add_to_buffer(strs* dest, const char* str) {
+  if (SCFP_VAR_SIZE - (int)(*dest->current) < 0) {
+    fprintf(stderr, "scfp: buffer full\n");
+    return 0;
+  }
+  const ssize_t len = s_strlen(str) + 1;
+  if ((int)(*dest->current + len) >= SCFP_VAR_SIZE) {
+    fprintf(stderr, "scfp: can't add str\n");
+    return 0;
+  }
+  memcpy((dest->buff + *dest->current), str, len);
+  return len;
+}

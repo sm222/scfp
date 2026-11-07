@@ -18,4 +18,6 @@ bool         scfp_set_ft(size_t i, scfp_rule rule, keywordFt ft);
 void         scfp_close_file(scfp_file file);
 void         scfp_end_rule(scfp_rule rule);
 
+ssize_t      add_to_buffer(strs* dest, const char* str);
+
 #endif

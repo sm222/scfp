@@ -103,14 +103,13 @@ static int test_keyword(scfp_real_data_t* file, const char* s, size_t* dis, ssiz
   }
   //return 1 = continue reading
   if (i < rule->keywordSize) {
-    if (rule->fts[i]) {
-      return rule->fts[i](s, rule->context);
-    } else {
-      fprintf(stderr, "scfp: missing function\n");
-      assert(0);
-    }
-    (void)total;
-    return 0;
+    assert(rule->fts[i]);
+    strs b = {
+      .from = s,
+      .current = total,
+      .buff = file->buffer,
+    };
+    return !rule->fts[i](&b, rule->context);
   }
   file->status = scfp_invalid_file;
   fprintf(stderr, "scfp: %.*s invalid keyword\n", (int)len, s);
@@ -124,7 +123,6 @@ ssize_t add_to(scfp_real_data_t* file, char* to, size_t curentLen, const char* s
       file->status = scfp_buffer_full;
     }
   }
-  // + 1 for null byte
   const ssize_t len = s_strlen(s) + 1;
   if ((int)(curentLen + len) >= SCFP_VAR_SIZE) {
     fprintf(stderr, "scfp: can't add str\n");
@@ -178,13 +176,13 @@ size_t _get_value(scfp_real_data_t* file, ssize_t* total, const char* name, scfp
   size_t i = 0;
   while (file->data.raw[i]) {
     line = file->data.raw[i];
-    //if (i > start) { return nameLen; }
     if (strncmp(line, name, nameLen) == 0 && line[nameLen] == ':') { break ; }
     i++;
-    //fprintf(stderr, "%s\n", file->data.raw[i]);
     if (!file->data.raw[i]) {
       const char* var = _read_predefine_var(rule, name);
-      (*total) += add_to(file, file->buffer, *total, var);
+      if (*var) {
+        (*total) += add_to(file, file->buffer, *total, var);
+      }
       return nameLen;
     }
   }
@@ -196,8 +194,9 @@ size_t _get_value(scfp_real_data_t* file, ssize_t* total, const char* name, scfp
     while (j < lineLen) {
       if (line[j] == rule->escape) {
         if (line[j + 1] == '_') {
-          if (test_keyword(file, line + j + (TOKENSIZE * 2), &j, total, rule))
+          if (test_keyword(file, line + j + (TOKENSIZE * 2), &j, total, rule)) {
             break ;
+          }
         }
         j += _get_value(file, total, line + j + TOKENSIZE, rule) + TOKENSIZE;
       }

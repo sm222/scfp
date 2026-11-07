@@ -5,13 +5,12 @@
 # include <ctype.h>
 # include <string.h>
 # include <strings.h>
-# include <stdbool.h>
+
 
 # ifndef  SCFP_READ_SIZE
 #  define SCFP_READ_SIZE 200
 # endif
 
-# define SCFP_VAR_SIZE 10000
 
 typedef ssize_t byte_t;
 
@@ -110,5 +109,7 @@ size_t            _get_value(scfp_real_data_t* file, ssize_t* total, const char*
 void              _scfp_set_context(scfp_rules_t* rule, void* context);
 
 void              _scfp_set_ft(size_t i, scfp_rules_t* rule, keywordFt ft);
+
+ssize_t           add_to(scfp_real_data_t* file, char* to, size_t curentLen, const char* s);
 
 #endif

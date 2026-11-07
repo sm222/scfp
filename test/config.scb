@@ -22,6 +22,11 @@ CFLAGS:
   -Wextra 
   -g @_HELLO
 
+SETTING:
+  @_EN_CA\ hello
+  @_FR_CA\ bonjour
+  @NOT_SUPORT
+
 ING:
   test
 
